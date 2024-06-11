@@ -1,4 +1,4 @@
-package nova.mysub.global.auth.oauth2;
+package nova.mysub.global.auth.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
