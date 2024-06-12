@@ -2,6 +2,7 @@ package nova.mysub.global.config;
 
 import lombok.RequiredArgsConstructor;
 import nova.mysub.domain.user.service.CustomUserDetailsService;
+import nova.mysub.global.auth.jwt.JwtAuthenticationFilter;
 import nova.mysub.global.auth.jwt.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,11 +21,6 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService userDetailsService;
 
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider, CustomUserDetailsService userDetailsService) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.userDetailsService = userDetailsService;
-    }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
@@ -36,7 +32,7 @@ public class SecurityConfig {
                         authorizeRequests
                                 .requestMatchers("/api/users/kakao/signup").permitAll()
                                 .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

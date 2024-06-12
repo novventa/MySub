@@ -57,17 +57,12 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        UserDetails userDetails = getUserDetailsFromToken(token);
+        UserDetails userDetails = customUserDetailsService.loadUserById(getUserIdFromToken(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-    }
-
-    private UserDetails getUserDetailsFromToken(String token) {
-        Long userId = getUserIdFromToken(token);
-        return customUserDetailsService.loadUserById(userId);
     }
 
     public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parser().setSigningKey(JWT_SECRET.getBytes()).build().parseClaimsJws(token).getBody();
-        return claims.getSubject();
+        return Long.parseLong(claims.getSubject());
     }
 }

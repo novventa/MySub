@@ -13,5 +13,4 @@ public class UserDto {
     private String email;
     private String profileImageUrl;
     private String role;
-    private Long kakaoId;
 }
