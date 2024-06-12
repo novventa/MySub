@@ -17,46 +17,35 @@ public class UserServiceImpl implements UserService{
     @Autowired
     private UserRepository userRepository;
 
-    @Override
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
-    @Override
     public Optional<UserDto> getUserById(Long id) {
         return userRepository.findById(id)
                 .map(this::convertToDto);
     }
 
-    @Override
     public UserDto createUser(UserDto userDto) {
         User user = convertToEntity(userDto);
         user = userRepository.save(user);
         return convertToDto(user);
     }
 
-    @Override
     public UserDto updateUser(Long id, UserDto userDto) {
         User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
         user.setUsername(userDto.getUsername());
         user.setEmail(userDto.getEmail());
         user.setRole(userDto.getRole());
         user.setProfileImageUrl(userDto.getProfileImageUrl());
-        user.setKakaoId(userDto.getKakaoId());
         user = userRepository.save(user);
         return convertToDto(user);
     }
 
-    @Override
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
-    }
-
-    @Override
-    public Optional<User> findByKakaoId(Long kakaoId) {
-        return userRepository.findByKakaoId(kakaoId);
     }
 
     private UserDto convertToDto(User user) {
@@ -64,6 +53,12 @@ public class UserServiceImpl implements UserService{
     }
 
     private User convertToEntity(UserDto userDto) {
-        return new User(userDto.getId(), userDto.getUsername(), userDto.getEmail(), userDto.getProfileImageUrl(), userDto.getRole(), userDto.getKakaoId());  // kakaoId 포함
+        User user = new User();
+        user.setId(userDto.getId());
+        user.setUsername(userDto.getUsername());
+        user.setEmail(userDto.getEmail());
+        user.setProfileImageUrl(userDto.getProfileImageUrl());
+        user.setRole(userDto.getRole());
+        return user;
     }
 }
