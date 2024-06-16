@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService{
     }
 
     private UserDto convertToDto(User user) {
-        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileImageUrl(), user.getRole(), user.getKakaoId());  // kakaoId 포함
+        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileImageUrl(), user.getRole());
     }
 
     private User convertToEntity(UserDto userDto) {
