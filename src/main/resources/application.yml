@@ -1,0 +1,9 @@
+spring:
+  redis:
+    host: <AWS_REDIS_ENDPOINT>
+    port: 6379
+    password: <REDIS_PASSWORD>
+jwt:
+    secret: your_secret_key
+    expiration-time: 86400000 # 24 hours
+    refresh-expiration-time: 1209600000 # 14 days
