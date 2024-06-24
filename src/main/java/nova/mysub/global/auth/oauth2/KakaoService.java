@@ -8,6 +8,7 @@ import nova.mysub.domain.user.service.CustomUserDetailsService;
 import nova.mysub.global.auth.dto.KakaoUserResponse;
 import nova.mysub.global.auth.dto.SignUpSuccessResponseDto;
 import nova.mysub.global.auth.jwt.JwtTokenProvider;
+import nova.mysub.global.auth.jwt.RefreshTokenService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +23,7 @@ public class KakaoService {
     private final UserRepository userRepository;
     private final KakaoApiClient kakaoApiClient;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
     private final CustomUserDetailsService customUserDetailsService;
 
     @Transactional
@@ -29,7 +31,7 @@ public class KakaoService {
         log.info("Signing up user with access token: {}", accessToken);
         KakaoUserResponse userResponse = kakaoApiClient.getUserInformation("Bearer " + accessToken);
 
-        User user = userRepository.findById(userResponse.id())
+        User user = userRepository.findByKakaoId(userResponse.id())
                 .orElseGet(() -> {
                     log.info("Creating new user for Kakao ID: {}", userResponse.id());
                     return createUser(userResponse);
@@ -38,8 +40,12 @@ public class KakaoService {
         UserDetails userDetails = customUserDetailsService.loadUserById(user.getId());
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         String token = jwtTokenProvider.generateToken(authentication);
-        log.info("Generated JWT token for user ID: {}", user.getId());
-        return new SignUpSuccessResponseDto(token);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+
+        refreshTokenService.saveRefreshToken(user.getId(), refreshToken);
+        log.info("Generated JWT token and refresh token for user ID: {}", user.getId());
+
+        return new SignUpSuccessResponseDto(token, refreshToken);
     }
 
     private User createUser(KakaoUserResponse userResponse) {
