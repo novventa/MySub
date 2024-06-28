@@ -2,6 +2,7 @@ package nova.mysub.global.auth.oauth2;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nova.mysub.domain.user.model.dto.UserDto;
 import nova.mysub.domain.user.model.entity.User;
 import nova.mysub.domain.user.repository.UserRepository;
 import nova.mysub.domain.user.service.CustomUserDetailsService;
@@ -49,12 +50,12 @@ public class KakaoService {
     }
 
     private User createUser(KakaoUserResponse userResponse) {
-        User user = new User();
-        user.setUsername(userResponse.kakaoAccount().profile().nickname());
-        user.setEmail(userResponse.kakaoAccount().profile().accountEmail());
-        user.setProfileImageUrl(userResponse.kakaoAccount().profile().profileImageUrl());
-        user.setRole("USER");
-        user.setKakaoId(userResponse.id());
-        return userRepository.save(user);
+        return userRepository.save(User.builder()
+                .username(userResponse.kakaoAccount().profile().nickname())
+                .email(userResponse.kakaoAccount().profile().accountEmail())
+                .profileImageUrl(userResponse.kakaoAccount().profile().profileImageUrl())
+                .role("USER")
+                .kakaoId(userResponse.id())
+                .build());
     }
 }

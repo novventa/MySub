@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-
 @Service
 public class UserServiceImpl implements UserService{
 
@@ -36,10 +35,14 @@ public class UserServiceImpl implements UserService{
 
     public UserDto updateUser(Long id, UserDto userDto) {
         User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
-        user.setUsername(userDto.getUsername());
-        user.setEmail(userDto.getEmail());
-        user.setRole(userDto.getRole());
-        user.setProfileImageUrl(userDto.getProfileImageUrl());
+        user = User.builder()
+                .id(id)
+                .username(userDto.getUsername())
+                .email(userDto.getEmail())
+                .profileImageUrl(userDto.getProfileImageUrl())
+                .role(userDto.getRole())
+                .kakaoId(user.getKakaoId()) // Keep the existing kakaoId
+                .build();
         user = userRepository.save(user);
         return convertToDto(user);
     }
@@ -49,16 +52,22 @@ public class UserServiceImpl implements UserService{
     }
 
     private UserDto convertToDto(User user) {
-        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileImageUrl(), user.getRole());
+        return UserDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .profileImageUrl(user.getProfileImageUrl())
+                .role(user.getRole())
+                .build();
     }
 
     private User convertToEntity(UserDto userDto) {
-        User user = new User();
-        user.setId(userDto.getId());
-        user.setUsername(userDto.getUsername());
-        user.setEmail(userDto.getEmail());
-        user.setProfileImageUrl(userDto.getProfileImageUrl());
-        user.setRole(userDto.getRole());
-        return user;
+        return User.builder()
+                .id(userDto.getId())
+                .username(userDto.getUsername())
+                .email(userDto.getEmail())
+                .profileImageUrl(userDto.getProfileImageUrl())
+                .role(userDto.getRole())
+                .build();
     }
 }

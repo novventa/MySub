@@ -2,7 +2,6 @@ package nova.mysub.global.auth;
 
 import nova.mysub.domain.user.model.entity.User;
 import nova.mysub.domain.user.repository.UserRepository;
-
 import nova.mysub.domain.user.service.CustomUserDetailsService;
 import nova.mysub.global.auth.dto.KakaoAccount;
 import nova.mysub.global.auth.dto.KakaoUserProfile;
@@ -52,46 +51,54 @@ public class KakaoSocialServiceTest {
         KakaoAccount kakaoAccount = new KakaoAccount(profile);
         kakaoUserResponse = new KakaoUserResponse(1L, kakaoAccount);
 
-        user = new User();
-        user.setId(1L);
-        user.setUsername("nickname");
-        user.setEmail("accountEmail");
-        user.setProfileImageUrl("profileImageUrl");
-        user.setRole("USER");
+        user = User.builder()
+                .id(1L)
+                .username("nickname")
+                .email("accountEmail")
+                .profileImageUrl("profileImageUrl")
+                .role("USER")
+                .kakaoId(1L)
+                .build();
     }
 
     @Test
     public void testSignUpNewUser() {
         when(kakaoApiClient.getUserInformation(any())).thenReturn(kakaoUserResponse);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        when(userRepository.findByKakaoId(anyLong())).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(customUserDetailsService.loadUserById(anyLong())).thenReturn(user);
         when(jwtTokenProvider.generateToken(any(Authentication.class))).thenReturn("token");
+        when(jwtTokenProvider.generateRefreshToken(any(Authentication.class))).thenReturn("refreshToken");
 
         SignUpSuccessResponseDto response = kakaoService.signUp("accessToken");
 
         assertNotNull(response);
-        assertEquals("token", response.getToken());
+        assertEquals("token", response.getAccessToken());
+        assertEquals("refreshToken", response.getRefreshToken());
         verify(kakaoApiClient).getUserInformation(any());
-        verify(userRepository).findById(anyLong());
+        verify(userRepository).findByKakaoId(anyLong());
         verify(userRepository).save(any(User.class));
         verify(jwtTokenProvider).generateToken(any(Authentication.class));
+        verify(jwtTokenProvider).generateRefreshToken(any(Authentication.class));
     }
 
     @Test
     public void testSignUpExistingUser() {
         when(kakaoApiClient.getUserInformation(any())).thenReturn(kakaoUserResponse);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(userRepository.findByKakaoId(anyLong())).thenReturn(Optional.of(user));
         when(customUserDetailsService.loadUserById(anyLong())).thenReturn(user);
         when(jwtTokenProvider.generateToken(any(Authentication.class))).thenReturn("token");
+        when(jwtTokenProvider.generateRefreshToken(any(Authentication.class))).thenReturn("refreshToken");
 
         SignUpSuccessResponseDto response = kakaoService.signUp("accessToken");
 
         assertNotNull(response);
-        assertEquals("token", response.getToken());
+        assertEquals("token", response.getAccessToken());
+        assertEquals("refreshToken", response.getRefreshToken());
         verify(kakaoApiClient).getUserInformation(any());
-        verify(userRepository).findById(anyLong());
+        verify(userRepository).findByKakaoId(anyLong());
         verify(userRepository, never()).save(any(User.class));
         verify(jwtTokenProvider).generateToken(any(Authentication.class));
+        verify(jwtTokenProvider).generateRefreshToken(any(Authentication.class));
     }
 }

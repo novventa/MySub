@@ -2,7 +2,8 @@ package nova.mysub.domain.user.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,9 +12,10 @@ import java.util.Collection;
 
 @Entity
 @Table(name = "users")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Builder
 public class User implements UserDetails {
 
     @Id
@@ -45,7 +47,7 @@ public class User implements UserDetails {
 
     @Override
     public String getPassword() {
-        return null;
+        return null; // or throw an UnsupportedOperationException if password is not used
     }
 
     @Override

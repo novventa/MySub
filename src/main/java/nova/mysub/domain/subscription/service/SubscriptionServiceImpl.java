@@ -97,7 +97,13 @@ public class SubscriptionServiceImpl implements SubscriptionService{
     private UserSubscriptionDto convertToUserSubscriptionDto(UserSubscription userSubscription) {
         return UserSubscriptionDto.builder()
                 .id(userSubscription.getId())
-                .user(new UserDto(userSubscription.getUser().getId(), userSubscription.getUser().getUsername(), userSubscription.getUser().getEmail(), userSubscription.getUser().getProfileImageUrl(), userSubscription.getUser().getRole()))
+                .user(UserDto.builder()
+                        .id(userSubscription.getUser().getId())
+                        .username(userSubscription.getUser().getUsername())
+                        .email(userSubscription.getUser().getEmail())
+                        .profileImageUrl(userSubscription.getUser().getProfileImageUrl())
+                        .role(userSubscription.getUser().getRole())
+                        .build())
                 .subscription(convertToDto(userSubscription.getSubscription()))
                 .renewalDate(userSubscription.getRenewalDate())
                 .build();
