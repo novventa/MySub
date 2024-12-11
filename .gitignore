@@ -153,3 +153,5 @@ Temporary Items
 .env
 
 application.yml
+/.gradle/
+/build/
