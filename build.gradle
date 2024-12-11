@@ -29,6 +29,12 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+    implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+
     // Redis for Refresh Token
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
