@@ -4,11 +4,14 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.InvalidKeyException;
-import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.util.Collections;
 import java.util.Date;
 
 @Component
@@ -31,15 +34,21 @@ public class JwtTokenProvider {
         // HMAC SHA256 알고리즘으로 SecretKey 생성
         this.secretKey = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
     }
-
     // Access Token 생성
-    public String generateAccessToken(Long userId) {
+    public String createAccessToken(Long userId) {
         return generateToken(userId, accessTokenValidity);
     }
 
     // Refresh Token 생성
-    public String generateRefreshToken(Long userId) {
+    public String createRefreshToken(Long userId) {
         return generateToken(userId, refreshTokenValidity);
+    }
+
+    // Access Token과 Refresh Token 동시 생성
+    public TokenDto createTokens(Long userId) {
+        String accessToken = createAccessToken(userId);
+        String refreshToken = createRefreshToken(userId);
+        return TokenDto.of(accessToken, refreshToken);
     }
 
     private String generateToken(Long userId, long validity) {
@@ -63,17 +72,27 @@ public class JwtTokenProvider {
                     .build()
                     .parseSignedClaims(token); // 토큰 검증 및 클레임 파싱
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException e) {
             return false; // 검증 실패
         }
     }
 
     public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parser()
-                .verifyWith(secretKey) // verifyWith 메서드로 SecretKey 설정
+                .verifyWith(secretKey) // SecretKey 설정
                 .build()
-                .parseSignedClaims(token) // 토큰 검증 및 클레임 추출
-                .getPayload();
-        return Long.valueOf(claims.getSubject());
+                .parseSignedClaims(token) // 토큰 검증 및 클레임 파싱
+                .getPayload(); // Payload(클레임) 가져오기
+
+        return Long.valueOf(claims.getSubject()); // Subject는 userId로 설정됨
+    }
+
+    public Authentication getAuthentication(String token) {
+        Long userId = getUserIdFromToken(token); // 토큰에서 userId 추출
+        return new UsernamePasswordAuthenticationToken(
+                userId,
+                null,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")) // 권한
+        );
     }
 }
