@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import nova.mysub.global.auth.jwt.JwtTokenProvider;
+import nova.mysub.global.auth.jwt.RefreshToken;
+import nova.mysub.global.auth.jwt.RefreshTokenRepository;
 import nova.mysub.global.auth.jwt.TokenDto;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -19,6 +21,7 @@ import java.util.Objects;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -30,5 +33,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String redirectUrl = String.format("http://localhost:8080/api/sign/login/kakao?accessToken=%s&refreshToken=%s",
                 tokenDto.getAccessToken(), tokenDto.getRefreshToken());
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+    }
+
+    private void saveRefreshTokenOnRedis(Long userId, TokenDto tokenDto) {
+        refreshTokenRepository.save(
+                RefreshToken.builder()
+                        .userId(String.valueOf(userId))
+                        .refreshToken(tokenDto.getRefreshToken())
+                        .build()
+        );
     }
 }

@@ -1,0 +1,7 @@
+package nova.mysub.global.auth.jwt;
+
+import org.springframework.data.repository.CrudRepository;
+
+public interface RefreshTokenRepository extends CrudRepository<RefreshToken, String> {
+    RefreshToken findByRefreshToken(String refreshToken);
+}

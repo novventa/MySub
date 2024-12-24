@@ -9,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Collections;
@@ -20,6 +22,8 @@ public class JwtTokenProvider {
     private final SecretKey secretKey;
     private final long accessTokenValidity = 1000L * 60 * 15; // 15분
     private final long refreshTokenValidity = 1000L * 60 * 60 * 24 * 7; // 7일
+
+    private RefreshTokenRepository refreshTokenRepository;
 
     public JwtTokenProvider() {
         Dotenv dotenv = Dotenv.configure()
@@ -94,5 +98,26 @@ public class JwtTokenProvider {
                 null,
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")) // 권한
         );
+    }
+
+    @Transactional
+    public TokenDto reIssueTokens(String refreshToken) {
+        RefreshToken storedToken = refreshTokenRepository.findByRefreshToken(refreshToken);
+        if (storedToken == null || !validateToken(refreshToken)) {
+            throw new IllegalArgumentException("Invalid or expired Refresh Token");
+        }
+
+        String userId = storedToken.getUserId();
+        TokenDto newTokens = createTokens(Long.valueOf(userId)); // 새로운 AccessToken과 RefreshToken 생성
+
+        // Refresh Token 업데이트
+        refreshTokenRepository.save(
+                RefreshToken.builder()
+                        .userId(userId)
+                        .refreshToken(newTokens.getRefreshToken())
+                        .build()
+        );
+
+        return newTokens;
     }
 }
